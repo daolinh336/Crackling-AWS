@@ -42,9 +42,7 @@ class CracklingStack(Stack):
 
         ### Virtual Private Cloud
         # VPCs are used for constraining infrastructure to a private network.
-        cracklingVpc = ec2_.Vpc(
-            scope=self,
-            id="CracklingVpc",
+        cracklingVpc = ec2_.Vpc(self, "CracklingVpc",
             gateway_endpoints={
                 "s3" : ec2_.GatewayVpcEndpointOptions(
                     service=ec2_.GatewayVpcEndpointAwsService.S3
@@ -60,8 +58,7 @@ class CracklingStack(Stack):
 
         ### Simple Storage Service (S3) is a object store that can host websites.
         # This bucket is used for hosting the front-end application.
-        s3Frontend = s3_.Bucket(self,
-            "CracklingWebsite",
+        s3Frontend = s3_.Bucket(self, "CracklingWebsite",
             website_index_document="index.html",
             public_read_access=True,
             removal_policy=RemovalPolicy.DESTROY,
@@ -80,8 +77,7 @@ class CracklingStack(Stack):
         cdk.CfnOutput(self, "Cloudfront_URL", value=cloudfront_url)
 
         ### Create an S3 bucket to store genome data
-        s3Genome = s3_.Bucket(self,
-            "genomeStorage", 
+        s3Genome = s3_.Bucket(self, "genomeStorage", 
             removal_policy=RemovalPolicy.DESTROY,
             auto_delete_objects=True,
             cors=[s3_.CorsRule(
@@ -127,10 +123,8 @@ class CracklingStack(Stack):
         s3Genome.add_to_resource_policy(s3GenomeAccessPointPolicy)
         
         ### VPC access point for Genome storage
-        s3GenomeAccess = s3_.CfnAccessPoint(
-            scope=self,
+        s3GenomeAccess = s3_.CfnAccessPoint(self, "s3GenomeAccess",
             bucket=s3Genome.bucket_name,
-            id="s3GenomeAccess",
             vpc_configuration=s3_.CfnAccessPoint.VpcConfigurationProperty(
                 vpc_id=cracklingVpc.vpc_id
             )
@@ -252,9 +246,7 @@ class CracklingStack(Stack):
 
         # Simple Queue Service is a queueing service that enables distributed systems to operate at scale.
         # This queue handles creating ISSL indexes
-        sqsIsslCreation = sqs_.Queue(
-            self,
-            "sqsIsslCreation", 
+        sqsIsslCreation = sqs_.Queue(self, "sqsIsslCreation", 
             receive_message_wait_time=Duration.seconds(1),
             visibility_timeout=duration,
             retention_period=duration
@@ -262,8 +254,7 @@ class CracklingStack(Stack):
 
         ### An SQS Deal Letter queue handles messages that have "died" in another queue.
         # This is a dead letter queue for the queue that implements the genome portion/part downloader
-        sqsGenomePartDownloads = sqs_.Queue(
-            self, "DLQ",
+        sqsGenomePartDownloads = sqs_.Queue(self, "DLQ",
             retention_period=Duration.days(14)
         )
 
@@ -280,9 +271,7 @@ class CracklingStack(Stack):
 
         ### SQS queue for identifying candidate guides
         # i.e., extracting on-target sites
-        sqsTargetScan = sqs_.Queue(
-            self,
-            "sqsTargetScan", 
+        sqsTargetScan = sqs_.Queue(self, "sqsTargetScan", 
             receive_message_wait_time=Duration.seconds(1),
             visibility_timeout=duration,
             retention_period=duration
@@ -298,9 +287,7 @@ class CracklingStack(Stack):
         ### SQS queue for evaluating guide efficiency
         # The TargetScan lambda function adds guides to this queue for processing
         # The consensus lambda function processes items in this queue
-        sqsConsensus = sqs_.Queue(
-            self,
-            "sqsConsensus", 
+        sqsConsensus = sqs_.Queue(self, "sqsConsensus", 
             receive_message_wait_time=Duration.seconds(20),
             visibility_timeout=duration,
             retention_period=duration
@@ -550,8 +537,7 @@ class CracklingStack(Stack):
         ### API
         # This handles the staging and deployment of the API. A ClouydFormation output is generated with the API URL.
         # Enable cross-origin resource sharing (CORS).
-        apiRest = api_.RestApi(self, 
-            "CracklingRestApi",
+        apiRest = api_.RestApi(self, "CracklingRestApi",
             default_cors_preflight_options=api_.CorsOptions(
                 allow_origins=["*"], 
                  
@@ -861,8 +847,8 @@ class CracklingStack(Stack):
 
 
 app = cdk.App()
-
-CracklingStack(app, f"CracklingStack", synthesizer=DefaultStackSynthesizer(
+stack_name = app.node.try_get_context("name") or "CracklingStack"
+CracklingStack(app, stack_name, synthesizer=DefaultStackSynthesizer(
     #file_assets_bucket_name="a-public-facing-bucket-n10753753"
 ))
 
