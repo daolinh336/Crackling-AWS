@@ -46,6 +46,6 @@ jobs:
         working-directory: aws
     
       - name: CDK Deploy
-        run: cdk deploy --verbose -c name=${{ vars.AWS_STACK_NAME }}
+        run: cdk deploy --require-approval never --verbose -c name=${{ vars.AWS_STACK_NAME }}
         working-directory: aws
        
