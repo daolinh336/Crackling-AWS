@@ -15,7 +15,7 @@ The list of assets needed in this layer are provided in `ncbi_reqs.txt`.
 To get the "ncbi-datasets-pylib" python package for this layer, code similar to the following needs to be run to install the package into the correct layer folder.
 
 ```
-mkdir layers/ncbi/python
+mkdir -p layers/ncbi/python
 py -3 -m pip install --target layers/ncbi/python -r layers/ncbi_reqs.txt
 ```
 
