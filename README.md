@@ -35,19 +35,62 @@ Jacob Bradford<sup>1</sup>, Timothy Chappell<sup>1</sup>, Brendan Hosking<sup>2<
 
 Please cite our paper when using Crackling:
 
+> Bradford, J., Joy, D., Winsen, M., Meurant, N., Wilkins, M., Wilson, L., Bauer, D., & Perrin, D. (2024). Crackling Cloud: an event-driven, cloud-based CRISPR-Cas9 guide RNA design tool. bioRxiv, 2024-12.
+
 > Bradford, J., Chappell, T., & Perrin, D. (2022). *Rapid whole-genome identification of high quality CRISPR guide RNAs with the Crackling method.* The CRISPR Journal, 5(3), 410-421.
 
 The standalone implementation is available on GitHub, [here](https://github.com/bmds-lab/Crackling).
 
-# Usage
+# Deploy from GitHub Actions
 
-1. If you do not have an AWS account, follow [this](https://aws.amazon.com/resources/create-account/) AWS user guide
+This guide explains how to deploy the **Crackling-AWS** application using GitHub Actions. The workflow will make the software available in your AWS account.
 
-2. Clone this repository, or download a Zip copy from GitHub.
+## Step 1: Create an AWS Account
 
-3. Follow the deployment instructions below.
+If you don’t already have an AWS account, sign up at [https://aws.amazon.com/](https://aws.amazon.com/) and complete the account setup process.
 
-4. Access your deployment of Crackling Cloud using the generated URLs:
+## Step 2: Fork the Repository
+
+1. Go to the Crackling-AWS GitHub repository.
+2. Click the **Fork** button at the top-right corner.
+
+## Step 3: Set Up GitHub Secrets and Variables
+
+The workflow requires your AWS credentials and configuration:
+
+1. Go to your forked repository on GitHub.
+2. Navigate to **Settings → Secrets and variables → Actions → Secrets**.
+3. Add the following secrets:
+
+   * `AWS_ACCESS_KEY_ID` – Your AWS access key ID
+   * `AWS_SECRET_ACCESS_KEY` – Your AWS secret access key
+   * `AWS_SESSION_TOKEN` – (Optional) Only if using temporary credentials
+
+4. Add the following repository variables:
+
+   * `AWS_REGION` – The AWS region to deploy resources (e.g., `ap-southeast-2`)
+   * `AWS_STACK_NAME` – The name you want for your CloudFormation stack (e.g., `CracklingStack`)
+
+## Step 4: Start the Deployment
+
+Once the secrets and variables are set:
+
+1. Go to the **Actions** tab in your forked repository.
+2. Select the workflow **Deploy Crackling-AWS**.
+3. Click **Run workflow**.
+4. Wait for the workflow to complete. You can see the progress in real time. It might take about 15 minutes.
+
+## Step 5: Verify Deployment
+
+After the workflow finishes:
+
+* Check your AWS account to confirm resources are created (Lambda, S3, DynamoDB, SQS, etc.).
+* The deployed stack will use the AWS account you configured in the secrets.
+
+
+## Step 6: Access Crackling Cloud
+
+Access your deployment of Crackling Cloud using the generated URLs:
 
     - The CloudFront URL provides you access to a simple web interface to submit jobs and retrieve results.
 
@@ -61,9 +104,9 @@ The standalone implementation is available on GitHub, [here](https://github.com/
     CracklingRestApiEndpoint: https://e123456789.execute-api.ap-southeast-2.amazonaws.com/prod/
    ```
 
-5. Access the web interface using the CloudFront URL.
+## Step 7: Run a test job
 
-6. Submit a job with these details (provided as defaults):
+Submit a job with these details (provided as defaults):
 
     **Query sequence:**
 
@@ -77,7 +120,9 @@ The standalone implementation is available on GitHub, [here](https://github.com/
    GCA_000482205.1
    ```
 
-7. After submitting the job, the interface will automatically switch to the 'retrieve results' tab. Click on the green 'Retrieve Results' button, progressively, until all results are ready. The status indicator will how analysis is progressing:
+## Step 8: Inspect results
+
+After submitting the job, the interface will automatically switch to the 'retrieve results' tab. Click on the green 'Retrieve Results' button, progressively, until all results are ready. The status indicator will how analysis is progressing:
 
 
     ```
@@ -96,6 +141,77 @@ The standalone implementation is available on GitHub, [here](https://github.com/
 
     - Off-target score reflects the predicted specificity of the guide RNA. See the 'About' tab for more information. You should use guides that have scored at least 75 out of 100. 
     
+
+
+# Deploy from your local machine
+
+## Step 1: Create an AWS account
+
+If you do not have an AWS account, follow [this](https://aws.amazon.com/resources/create-account/) AWS user guide
+
+## Step 2: Clone the repository
+
+Use git to clone this repository, or download a Zip copy from GitHub.
+
+## Step 3: Deploy the software
+
+Follow the deployment instructions below.
+
+## Step 4: Access Crackling Cloud
+
+Access your deployment of Crackling Cloud using the generated URLs:
+
+    - The CloudFront URL provides you access to a simple web interface to submit jobs and retrieve results.
+
+    - The API endpoint URL provides you access to same features of the web interface but allows you to write custom scripts or use third-party tools to interface with your deployment of Crackling Cloud.
+
+   For example,
+
+   ```
+    CloudfrontURL: d123q1z2zzz999.cloudfront.net
+	
+    CracklingRestApiEndpoint: https://e123456789.execute-api.ap-southeast-2.amazonaws.com/prod/
+   ```
+
+## Step 5: Run a test job
+
+Submit a job with these details (provided as defaults):
+
+    **Query sequence:**
+
+   ```
+   ATCGATCGATCGATCGATCGAGGATCGATCGATCGATCGATCGTGGCCAATCGATCGATCGATCGATCG
+   ```
+
+   **Genome Accession:**
+
+   ```
+   GCA_000482205.1
+   ```
+
+## Step 6: Inspect results
+
+After submitting the job, the interface will automatically switch to the 'retrieve results' tab. Click on the green 'Retrieve Results' button, progressively, until all results are ready. The status indicator will how analysis is progressing:
+
+
+    ```
+    Identified 3 candidate guides
+    Completed efficiency evaluation for 0 guides
+    Completed specificity evaluation for 0 guides
+    ```
+
+    The sample inputs will generate three guide RNA. 
+
+    - Start, end and strand describe where the guide RNA are found along the input gene sequence.
+
+    - The guide RNA itself is the sequence
+
+    - Consensus results reflects the predictive efficiency of the guide RNA. See the 'About' tab for more information. You should use guides that have scored at least two out of three.
+
+    - Off-target score reflects the predicted specificity of the guide RNA. See the 'About' tab for more information. You should use guides that have scored at least 75 out of 100. 
+
+
+
 # Architecture
 
 ![Architecture diagram](CracklingAws.drawio.png)

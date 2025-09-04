@@ -52,8 +52,10 @@ class CracklingStack(Stack):
                 )
             },
           
-            # A Network Address Translator routes outbound traffic to the internet when necessary
-            nat_gateways=1,
+            # A Network Address Translator routes outbound traffic to the internet when necessary.
+            # Force the VPC to have no internet access. 
+            # The Lambda fn that interacts with NCBI is placed *outside* of this VPC (i.e., `lambdaGenomePartsDownloader`)
+            nat_gateways=0,
         )
 
         ### Simple Storage Service (S3) is a object store that can host websites.
@@ -140,6 +142,15 @@ class CracklingStack(Stack):
                 f"{s3GenomeAccess.attr_arn}/object/*"
             ]
         })
+
+        ### VPC access to SQS
+        vpcSqsEndpoint = ec2_.InterfaceVpcEndpoint(
+            self, "vpcSqsEndpoint",
+            vpc=cracklingVpc,
+            service=ec2_.InterfaceVpcEndpointAwsService.SQS,
+            subnets=ec2_.SubnetSelection(subnet_type=ec2_.SubnetType.PRIVATE_ISOLATED),
+            private_dns_enabled=True
+        )
 
         ### DynamoDB (ddb) is a key-value store.
         # This table stores jobs for processing
@@ -337,7 +348,6 @@ class CracklingStack(Stack):
             handler="lambda_function.lambda_handler",
             code=lambda_.Code.from_asset("../modules/downloader"),
             layers=[lambdaLayerCommonFuncs,lambdaLayerNcbi,lambdaLayerLib],
-            vpc=cracklingVpc,
             timeout= duration,
             memory_size= 2065,
             ephemeral_storage_size = cdk.Size.gibibytes(10),
@@ -373,13 +383,12 @@ class CracklingStack(Stack):
             handler="lambda_function.lambda_handler",
             code=lambda_.Code.from_asset("../modules/partloader"),
             layers=[lambdaLayerCommonFuncs, lambdaLayerRequests],
-            vpc=cracklingVpc,
             timeout= duration,
             memory_size= 10240,
             ephemeral_storage_size = cdk.Size.gibibytes(10), 
             environment={
                 'FILES_TABLE' : ddbGenomeParts.table_name,
-                'BUCKET' : s3GenomeAccess.attr_arn,
+                'BUCKET' : s3Genome.bucket_name,
                 'ISSL_QUEUE' : sqsIsslCreation.queue_url
             }
         )
@@ -388,7 +397,6 @@ class CracklingStack(Stack):
         sqsIsslCreation.grant_send_messages(lambdaGenomePartsDownloader)
         ddbGenomeParts.grant_read_write_data(lambdaGenomePartsDownloader)
         s3Genome.grant_read_write(lambdaGenomePartsDownloader)
-        lambdaGenomePartsDownloader.add_to_role_policy(lambdaS3AccessPointIAM)
 
         lambdaGenomePartsDownloader.add_event_source_mapping(
             "mapppIsslCreation",
@@ -404,6 +412,7 @@ class CracklingStack(Stack):
             code=lambda_.Code.from_asset("../modules/isslCreation"),
             layers=[lambdaLayerIsslCreation, lambdaLayerCommonFuncs, lambdaLayerLib],
             vpc=cracklingVpc,
+            vpc_subnets=ec2_.SubnetSelection(subnet_type=ec2_.SubnetType.PRIVATE_ISOLATED),
             timeout= duration,
             memory_size= 10240,
             ephemeral_storage_size = cdk.Size.gibibytes(10),
