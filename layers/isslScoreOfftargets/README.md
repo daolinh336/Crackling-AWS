@@ -1,5 +1,6 @@
-This directory contains a pre-compiled edition of the ISSL-based off-target
-scoring method.
+# Layer: `isslScoreOfftargets`
+
+This directory contains a pre-compiled edition of the ISSL-based off-target scoring method.
 
 The latest version can be obtained from the GitHub repo:
 
