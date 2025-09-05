@@ -282,7 +282,7 @@ pip freeze > requirements.txt
 Working in the root directory of the repo, run:
 ```bash
 mkdir -p layers/ncbi/python
-python3 -m pip install --target layers/ncbi/python -r layers/ncbi_reqs.txt
+python3 -m pip install --target layers/ncbi/python -r layers/requirements_ncbi.txt
 ```
 
 **AWS App Modules**

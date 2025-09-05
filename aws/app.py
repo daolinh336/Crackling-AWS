@@ -198,7 +198,7 @@ class CracklingStack(Stack):
             compatible_architectures=[lambda_.Architecture.X86_64]
         )
 
-        ### Lambda layer containing python3.10 packages for rques
+        ### Lambda layer containing python3.10 packages for requests
         lambdaLayerRequests = lambda_.LayerVersion(self, "requests",
             code=lambda_.Code.from_asset("../layers/requestsPy310Pkgs"),
             removal_policy=RemovalPolicy.DESTROY,

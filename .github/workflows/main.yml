@@ -33,7 +33,10 @@ jobs:
         run: 'pip3 install -r aws/requirements.txt'
   
       - name: Create Lambda layer with NCBI dependency
-        run: 'mkdir -p layers/ncbi/python && python3 -m pip install --target layers/ncbi/python -r layers/ncbi_reqs.txt'
+        run: 'mkdir -p layers/ncbi/python && python3 -m pip install --target layers/ncbi/python -r layers/requirements_ncbi.txt'
+
+      - name: Create Lambda layer with numpy dependency
+        run: 'mkdir -p layers/sgrnascorer2Model/python && python3 -m pip install --target layers/sgrnascorer2Model/python -r layers/requirements_sgrnascorer2.txt'
 
       - name: Create Lambda layer with lib dependencies (1/2)
         run: "ldd layers/isslScoreOfftargets/isslScoreOfftargets | grep \"=> /\" | awk '{print $3}' | xargs -I '{}' cp -v '{}' layers/sharedObjects"
