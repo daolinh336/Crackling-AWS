@@ -15,3 +15,4 @@ layers/ncbi/*
 tests/*
 aws/node_modules
 layers/sgrnascorer2Model/python/*
+layers/requestsPy310Pkgs/python/*
