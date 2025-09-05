@@ -20,8 +20,7 @@ def file_exists_in_s3(bucket_name, s3_key):
         else:
             raise
 
-SGRNASCORER2_MODEL = joblib.load('/opt/sgrnascorer2_svm_numpy_data.npz')
-data = np.load(SGRNASCORER2_MODEL)
+data = np.load('/opt/sgrnascorer2_svm_numpy_data.npz')
 sv = data['support_vectors']
 dc = data['dual_coef']
 ic = data['intercept'].item()   # scalar
@@ -201,11 +200,7 @@ def _CalcSgrnascorer(seq):
             y += 1
         x += 1
 
-    # predict based on the entry
     _, score = predict(x, sv, dc, ic, cl)
-
-    #prediction = SGRNASCORER2_MODEL.predict([entryList])
-    #score = SGRNASCORER2_MODEL.decision_function([entryList])[0]
 
     return (float(score) >= 0)
 

@@ -265,18 +265,6 @@ mkdir -p ./layers/requestsPy310Pkgs/python
 python3 -m pip install --target layers/requestsPy310Pkgs/python requests
 ```
 
-**Consensus Layer**
-
-The consensus layer has Python dependencies, including scikit-learn. Scikit-learn along with its dependencies is over 250MB. To overcome the 250MB Lambda layer limit, these dependencies are being installed directly within the consensus Lambda and uploaded to S3. Hence, they do not need to be installed locally before deployment.
-
-If you make changes to the dependencies, make sure the `requirements.txt` file is updated:
-
-```bash
-cd modules/consensus
-
-pip freeze > requirements.txt
-```
-
 **NCBI Layer:**
 
 Working in the root directory of the repo, run:
