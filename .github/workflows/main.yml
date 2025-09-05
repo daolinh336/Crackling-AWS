@@ -38,6 +38,9 @@ jobs:
       - name: Create Lambda layer with numpy dependency
         run: 'mkdir -p layers/sgrnascorer2Model/python && python3 -m pip install --target layers/sgrnascorer2Model/python -r layers/requirements_sgrnascorer2.txt'
 
+      - name: Create Lambda layer with requests dependency
+        run: 'mkdir -p layers/requestsPy310Pkgs/python && python3 -m pip install --target layers/requestsPy310Pkgs/python -r layers/requirements_requests.txt'
+
       - name: Create Lambda layer with lib dependencies (1/2)
         run: "ldd layers/isslScoreOfftargets/isslScoreOfftargets | grep \"=> /\" | awk '{print $3}' | xargs -I '{}' cp -v '{}' layers/sharedObjects"
 
