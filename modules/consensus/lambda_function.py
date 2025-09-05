@@ -2,7 +2,7 @@ import ast, json, os, re, tempfile
 from subprocess import call
 from time import time_ns
 
-import boto3, joblib
+import boto3
 from common_funcs import *
 
 import numpy as np

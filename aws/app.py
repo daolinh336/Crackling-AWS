@@ -343,10 +343,10 @@ class CracklingStack(Stack):
         ### Lambda function that organises the parallel download of genome parts
         # Extracts names and sizes from fasta files in NCBI server
         # Split each file into part file portions
-        lambdaGenomeDownloadScheduler = lambda_.Function(self, "downloader", 
+        lambdaGenomeDownloadScheduler = lambda_.Function(self, "genomeDownloadScheduler", 
             runtime=lambda_.Runtime.PYTHON_3_10,
             handler="lambda_function.lambda_handler",
-            code=lambda_.Code.from_asset("../modules/downloader"),
+            code=lambda_.Code.from_asset("../modules/genomeDownloadScheduler"),
             layers=[lambdaLayerCommonFuncs,lambdaLayerNcbi,lambdaLayerLib],
             timeout= duration,
             memory_size= 2065,
@@ -378,10 +378,10 @@ class CracklingStack(Stack):
 
        
         ### Lambda function that downloads files from NCBI server and uploads them to S3 
-        lambdaGenomePartsDownloader = lambda_.Function(self, "partloader", 
+        lambdaGenomePartsDownloader = lambda_.Function(self, "GenomePartsDownloader", 
             runtime=lambda_.Runtime.PYTHON_3_10,
             handler="lambda_function.lambda_handler",
-            code=lambda_.Code.from_asset("../modules/partloader"),
+            code=lambda_.Code.from_asset("../modules/genomePartsDownloader"),
             layers=[lambdaLayerCommonFuncs, lambdaLayerRequests],
             timeout= duration,
             memory_size= 10240,

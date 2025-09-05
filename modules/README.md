@@ -2,6 +2,7 @@
 These modules are the code that is run both in the lambda functions of the normal stack and in the EC2 used for larger genomes.
 
 ## Downloader
+
 This module uses the [NCBI Datasets](https://github.com/ncbi/datasets) python module to download genomes from the NCBI and associated databases. The requested genome accession to download is downloaded as a zip file to `/tmp`, then each FASTA file is extracted and uploaded to an s3 bucket to be used by the isslCreation and Bowtie2 modules. This module will also check S3 to confirm if the files already exist before downloading
 This module requires the "CommonFuncs", "Ncbi" and "Lib" layers to function as expected.
 
