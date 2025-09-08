@@ -5,8 +5,6 @@ from time import time_ns
 import boto3
 from common_funcs import *
 
-import numpy as np
-
 s3_bucket = os.environ['BUCKET']
 
 def file_exists_in_s3(bucket_name, s3_key):
@@ -20,11 +18,13 @@ def file_exists_in_s3(bucket_name, s3_key):
         else:
             raise
 
-data = np.load('/opt/sgrnascorer2_svm_numpy_data.npz')
+with open('/opt/sgrnascorer2_svm_data.json', 'r') as f:
+    data = json.load(f)
 sv = data['support_vectors']
-dc = data['dual_coef']
-ic = data['intercept'].item()   # scalar
-cl = data['classes']
+dc = data['dual_coef']      
+ic = data['intercept']      
+cl = data['classes']  
+
 
 call(f"cp -r /opt/rnaFold /tmp/rnaFold".split(' '))
 call(f"chmod -R 755 /tmp/rnaFold".split(' '))
@@ -173,36 +173,40 @@ def _CalcMm10db(seq, rnaFoldResult):
         rnaFoldResult
     ])
 
-# Functions for sgRNAScorer 2.0 (implemented via numpy)
-def decision_function(x, support_vectors, dual_coef, intercept):
-    return np.sum(dual_coef * np.dot(support_vectors, x)) + intercept
 
+# Dot product between two vectors
+def dot(u, v):
+    return sum(ue * ve for ue, ve in zip(u, v))
+
+# Decision function
+def decision_function(x, support_vectors, dual_coef, intercept):
+    total = 0.0
+    for coef, sv in zip(dual_coef, support_vectors):
+        total += coef * dot(sv, x)
+    return total + intercept
+
+# Predict
 def predict(x, support_vectors, dual_coef, intercept, classes):
     score = decision_function(x, support_vectors, dual_coef, intercept)
-    return classes[1] if score > 0 else classes[0], score
+    return (classes[1] if score > 0 else classes[0], score)
 
-def _CalcSgrnascorer(seq):
+# sgRNAScorer 2.0 calculation
+def _CalcSgrnascorer(seq, sv, dc, ic, cl):
     encoding = {
-        'A' : '0001',        'C' : '0010',        'T' : '0100',        
-        'G' : '1000',        'K' : '1100',        'M' : '0011',
-        'R' : '1001',        'Y' : '0110',        'S' : '1010',        
-        'W' : '0101',        'B' : '1110',        'V' : '1011',        
-        'H' : '0111',        'D' : '1101',        'N' : '1111'
+        'A': '0001', 'C': '0010', 'T': '0100', 'G': '1000',
+        'K': '1100', 'M': '0011', 'R': '1001', 'Y': '0110',
+        'S': '1010', 'W': '0101', 'B': '1110', 'V': '1011',
+        'H': '0111', 'D': '1101', 'N': '1111'
     }
 
+    # Flattened binary encoding of the first 20 bases
     entryList = []
+    for base in seq[:20]:
+        entryList.extend(int(bit) for bit in encoding[base])
 
-    x = 0
-    while x < 20:
-        y = 0
-        while y < 4:
-            entryList.append(int(encoding[seq[x]][y]))
-            y += 1
-        x += 1
+    _, score = predict(entryList, sv, dc, ic, cl)
+    return float(score) >= 0
 
-    _, score = predict(x, sv, dc, ic, cl)
-
-    return (float(score) >= 0)
 
 def lambda_handler(event, context):
     records = {}
