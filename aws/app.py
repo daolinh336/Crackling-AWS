@@ -104,26 +104,6 @@ class CracklingStack(Stack):
             )]
         )
 
-        ### Delegate permisions to access point
-        s3GenomeAccessPointPolicy = iam_.PolicyStatement.from_json({
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "*"
-            },
-            "Action": "*",
-            "Resource": [
-               f"{s3Genome.bucket_arn}",
-                f"{s3Genome.bucket_arn}/*"
-            ],
-            "Condition": {
-                "StringEquals": {
-                    "s3:DataAccessPointAccount": account_number
-                }
-            }
-        })
-
-        s3Genome.add_to_resource_policy(s3GenomeAccessPointPolicy)
-        
         ### VPC access point for Genome storage
         s3GenomeAccess = s3_.CfnAccessPoint(self, "s3GenomeAccess",
             bucket=s3Genome.bucket_name,
@@ -131,7 +111,26 @@ class CracklingStack(Stack):
                 vpc_id=cracklingVpc.vpc_id
             )
         )
+        
+        ### Delegate permisions to access point
+        s3GenomeAccessPointPolicy = iam_.PolicyStatement.from_json({
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "*"
+            },
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:ListBucket"
+            ],
+            "Resource": [
+                f"{s3GenomeAccess.attr_arn}",        # Access point ARN
+                f"{s3GenomeAccess.attr_arn}/object/*" # Objects through the access point
+            ]
+        })
 
+        s3GenomeAccess.add_to_resource_policy(s3GenomeAccessPointPolicy)
+        
         lambdaS3AccessPointIAM = iam_.PolicyStatement.from_json({
             "Effect": "Allow",
             "Action": [
