@@ -2,7 +2,7 @@
 
 [Crackling](https://github.com/bmds-lab/Crackling) is one of the leading CRISPR-Cas9 guide RNA design tools. 
 
-In this implementation of Crackling, we use serverless technologies by Amazon Web Services (AWS) so anyone can design high-quality gRNA without having to send their data to a third-party.
+In this implementation of Crackling, we use generally-available computing technologies by Amazon Web Services (AWS) so anyone can design high-quality gRNA without needing a supercomputer/HPC, nor having to send their data to a third-party.
 
 With thanks to our colleagues at the CSIRO for their support during the development of this edition of the pipeline.
 
@@ -47,7 +47,7 @@ This guide explains how to deploy the **Crackling-AWS** application using GitHub
 
 ## Step 1: Create an AWS Account
 
-If you don’t already have an AWS account, sign up at [https://aws.amazon.com/](https://aws.amazon.com/) and complete the account setup process.
+If you don't already have an AWS account, sign up at [https://aws.amazon.com/](https://aws.amazon.com/) and complete the account setup process.
 
 ## Step 2: Fork the Repository
 
@@ -82,11 +82,9 @@ Once the secrets and variables are set:
 
 ## Step 5: Verify Deployment
 
-After the workflow finishes:
+After the workflow finishes, it will generate two links. One for the web application that you use to start the guide design process, and another for a back-end access (the API; for advanced users only).
 
-* Check your AWS account to confirm resources are created (Lambda, S3, DynamoDB, SQS, etc.).
-* The deployed stack will use the AWS account you configured in the secrets.
-
+Optionally, check your AWS account to confirm resources are created (Lambda, S3, DynamoDB, SQS, etc.).
 
 ## Step 6: Access Crackling Cloud
 
@@ -108,7 +106,7 @@ Access your deployment of Crackling Cloud using the generated URLs:
 
 Submit a job with these details (provided as defaults):
 
-    **Query sequence:**
+   **Query sequence:**
 
    ```
    ATCGATCGATCGATCGATCGAGGATCGATCGATCGATCGATCGTGGCCAATCGATCGATCGATCGATCG
@@ -119,6 +117,21 @@ Submit a job with these details (provided as defaults):
    ```
    GCA_000482205.1
    ```
+
+Try a larger job, designing guides for the TFL1 gene of Arabidopsis Thaliana.
+
+   **Query sequence:**
+
+   ```
+   AAATAGATGTCTCGGTCGTCTCTTTGTCTCCCAAATCACTACAAATCTCTCTTTTCCTCTAAGTTAACAAAAGAAAATGGAGAATATGGGAACTAGAGTGATAGAGCCATTGATAATGGGGAGAGTGGTAGGAGATGTTCTTGATTTCTTCACTCCAACAACTAAGATGAATGTTAGTTATAACAAGAAGCAAGTCTCCAATGGCCATGAGCTCTTTCCTTCTTCTGTTTCCTCCAAGCCTAGGGTTGAGATCCATGGTGGTGATCTCAGATCCTTCTTCACTTTGGTGATGATAGACCCAGATGTTCCAGGTCCTAGTGACCCCTTTCTAAAAGAACACCTGCACTGGATCGTTACAAACATTCCCGGCACAACAGATGCTACGTTTGGCAAAGAGGTGGTGAGCTATGAATTGCCAAGGCCAAGCATAGGGATACATAGGTTTGTGTTTGTTCTGTTCAGGCAGAAGCAAAGACGTGTTATCTTTCCTAATATCCCTTCGAGAGATCACTTCAACACTCGTAAATTTGCGGTCGAGTATGATCTTGGTCTCCCTGTCGCGGCCGTCTTCTTTAACGCACAAAGAGAAACCGCTGCACGCAAACGCTAGTTTCATGATTGTCATAAACTGCAAAAATGAAAGAAGAAAATTTGCATGTAATCTCATGTTTATTTGTGTTCTGAATTTCCGTACTCTGAATAAAAACTGCCAAAGATGAGTTGAATCCGAAATATCAATTGAGTTTACAGAAGTATTGATAACGATCTGTCGATTATCAGAATAAAAACTAGATTAATTGCATATCATGTTTAGCATTGTAATACTACAAAAATAGTAAACTCTTGATTAATTAATAAAATCTAAGTTGC
+   ```
+
+   **Genome Accession:**
+
+   ```
+   GCF_000001735.4
+   ```
+
 
 ## Step 8: Inspect results
 
@@ -144,6 +157,10 @@ After submitting the job, the interface will automatically switch to the 'retrie
 
 
 # Deploy from your local machine
+
+This process is useful for developers. If you are wanting to design guides but not contribute to the development of Crackling-AWS, then this is not the option for you.\
+
+Note to developers: the GitHub workflow best describes the deployment process.
 
 ## Step 1: Create an AWS account
 
@@ -210,17 +227,9 @@ After submitting the job, the interface will automatically switch to the 'retrie
 
     - Off-target score reflects the predicted specificity of the guide RNA. See the 'About' tab for more information. You should use guides that have scored at least 75 out of 100. 
 
-
-
 # Architecture
 
 ![Architecture diagram](CracklingAws.drawio.png)
-
-# Deployment instructions
-
-Coming soon: a short-cut method for deploying this infrastructure to your cloud account!
-
-For now, read the *Development instructions* section.
 
 # Development instructions
 

@@ -35,9 +35,6 @@ jobs:
       - name: Create Lambda layer with NCBI dependency
         run: 'mkdir -p layers/ncbi/python && python3 -m pip install --target layers/ncbi/python -r layers/requirements_ncbi.txt'
 
-      - name: Create Lambda layer with numpy dependency
-        run: 'mkdir -p layers/sgrnascorer2Model/python && python3 -m pip install --platform manylinux2014_x86_64 --only-binary=:all: --target layers/sgrnascorer2Model/python -r layers/requirements_sgrnascorer2.txt'
-
       - name: Create Lambda layer with requests dependency
         run: 'mkdir -p layers/requestsPy310Pkgs/python && python3 -m pip install --target layers/requestsPy310Pkgs/python -r layers/requirements_requests.txt'
 
@@ -50,8 +47,12 @@ jobs:
       - name: CDK Synth
         run: cdk synth
         working-directory: aws
-    
+
       - name: CDK Deploy
-        run: cdk deploy --require-approval never --verbose -c name=${{ vars.AWS_STACK_NAME }}
+        run: cdk deploy --require-approval never --verbose -c name=${{ vars.AWS_STACK_NAME }} --outputs-file cdk-outputs.json
         working-directory: aws
-       
+
+      - name: Print CDK Outputs
+        run: |
+          echo "CDK Stack Outputs:"
+          jq -r 'to_entries[] | "\(.key)=\(.value)"' aws/cdk-outputs.json
