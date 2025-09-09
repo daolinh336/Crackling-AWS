@@ -60,7 +60,7 @@ The workflow requires your AWS credentials and configuration:
 
 1. Go to your forked repository on GitHub.
 2. Navigate to **Settings → Secrets and variables → Actions → Secrets**.
-3. Add the following secrets:
+3. Add the following repository secrets:
 
    * `AWS_ACCESS_KEY_ID` – Your AWS access key ID
    * `AWS_SECRET_ACCESS_KEY` – Your AWS secret access key
@@ -82,11 +82,16 @@ Once the secrets and variables are set:
 
 ## Step 5: Verify Deployment
 
-After the workflow finishes, it will generate two links. One for the web application that you use to start the guide design process, and another for a back-end access (the API; for advanced users only).
+GitHub should report that the workflow succeeded. The final step of the workflow should be labeled as "Complete job".
 
 Optionally, check your AWS account to confirm resources are created (Lambda, S3, DynamoDB, SQS, etc.).
 
 ## Step 6: Access Crackling Cloud
+
+After the deployment finishes, two links will be provided to you. They are found in a section of the workflow log, labeled as "Crackling Interface URLs". 
+
+1. The "CloudfrontURL" is the web application that you use to start the guide design process.
+2. The "CracklingRestApiEndpoint" is the REST API for programmatically accessing your deployment of the Crackling software (for advanced users).
 
 Access your deployment of Crackling Cloud using the generated URLs:
 
@@ -158,7 +163,7 @@ After submitting the job, the interface will automatically switch to the 'retrie
 
 # Deploy from your local machine
 
-This process is useful for developers. If you are wanting to design guides but not contribute to the development of Crackling-AWS, then this is not the option for you.\
+This process is useful for developers. If you are wanting to design guides but not contribute to the development of Crackling-AWS, then this is not the option for you.
 
 Note to developers: the GitHub workflow best describes the deployment process.
 
@@ -233,17 +238,17 @@ After submitting the job, the interface will automatically switch to the 'retrie
 
 # Development instructions
 
-**Be sure you have cloned this repository to your computer.**
+Be sure you have cloned this repository to your computer.
 
-**1. Install the AWS command-line interface**
+## Step 1: Install the AWS command-line interface
 
 Follow the AWS Documentation for [Getting started with the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html)
 
-**2. Install the AWS Cloud Development Kit**
+## Step 2: Install the AWS Cloud Development Kit
 
 Follow the AWS Documentation for [Getting started with the AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html)
 
-**3. Shared objects (for binaries)**
+## Step 3: Shared objects (for binaries)
 
 Collect all shared objects needed by compiled binaries.
 
@@ -261,50 +266,21 @@ then
 ldd layers/rnaFold/rnaFold/RNAfold | grep "=> /" | awk '{print $3}' | xargs -I '{}' cp -v '{}' layers/sharedObjects
 ```
 
-**4. Python Modules **
+## Step 4: Installing dependencies
 
-The `pip install -r' command is used frequently throught the following section. In some enviroments, this command errors out. If this occours, please view the requirments.txt file (referenced in the command) and use pip to install each library manually.
+To avoid redunancy and the information in this step becoming out the date, we will not list the instructions to install depenencies. Instead, you should read the GitHub workflow, found in `.github/workflows/main.yml`. This is critical for a successful deployment.
 
-**GenomePartsDownloader Layer**
-
-Working in the root directory of the repository, run:
-
-```bash
-mkdir -p ./layers/requestsPy310Pkgs/python
-python3 -m pip install --target layers/requestsPy310Pkgs/python requests
-```
-
-**NCBI Layer:**
-
-Working in the root directory of the repo, run:
-```bash
-mkdir -p layers/ncbi/python
-python3 -m pip install --target layers/ncbi/python -r layers/requirements_ncbi.txt
-```
-
-**AWS App Modules**
-
-Working in the `<root>/aws` directory:
-```bash
-python3 -m venv .venv
-
-source .venv/bin/activate
-
-pip install -r requirements.txt
-
-deactivate
-```
-
-**5. Further Reading**
+## Step 5: Further Reading
 
 Please now proceed to read the following documentation for futher install instructions (/understanding) for the application:
- - `<root>/layers/README.md`
- - `<root>/modules/README.md`
- - `<root>/aws/README.md`
+ - `layers/README.md`
+ - `modules/README.md`
+ - `aws/README.md`
 
-**6. Deploying using the CDK**
+## Step 6: Deploying using the CDK
 
-Working from the `<root>/aws` directory:
+Working from the `aws` directory:
+
 ```bash
 # Run this during first deployment
 cdk bootstrap aws://377188290550/ap-southeast-2

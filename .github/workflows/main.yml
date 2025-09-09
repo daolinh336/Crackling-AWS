@@ -52,7 +52,7 @@ jobs:
         run: cdk deploy --require-approval never --verbose -c name=${{ vars.AWS_STACK_NAME }} --outputs-file cdk-outputs.json
         working-directory: aws
 
-      - name: Print CDK Outputs
+      - name: Crackling Interface URLs
         run: |
           echo "CDK Stack Outputs:"
           jq -r 'to_entries[] | "\(.key)=\(.value)"' aws/cdk-outputs.json
