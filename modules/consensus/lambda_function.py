@@ -20,10 +20,10 @@ def file_exists_in_s3(bucket_name, s3_key):
 
 with open('/opt/sgrnascorer2_svm_data.json', 'r') as f:
     data = json.load(f)
-sv = data['support_vectors']
-dc = data['dual_coef']      
-ic = data['intercept']      
-cl = data['classes']  
+support_vectors = data['support_vectors']
+dual_coef = data['dual_coef']      
+intercept = data['intercept']      
+classes = data['classes']  
 
 
 call(f"cp -r /opt/rnaFold /tmp/rnaFold".split(' '))
@@ -186,12 +186,12 @@ def decision_function(x, support_vectors, dual_coef, intercept):
     return total + intercept
 
 # Predict
-def predict(x, support_vectors, dual_coef, intercept, classes):
+def predict(x):
     score = decision_function(x, support_vectors, dual_coef, intercept)
     return (classes[1] if score > 0 else classes[0], score)
 
 # sgRNAScorer 2.0 calculation
-def _CalcSgrnascorer(seq, sv, dc, ic, cl):
+def _CalcSgrnascorer(seq):
     encoding = {
         'A': '0001', 'C': '0010', 'T': '0100', 'G': '1000',
         'K': '1100', 'M': '0011', 'R': '1001', 'Y': '0110',
@@ -204,7 +204,7 @@ def _CalcSgrnascorer(seq, sv, dc, ic, cl):
     for base in seq[:20]:
         entryList.extend(int(bit) for bit in encoding[base])
 
-    _, score = predict(entryList, sv, dc, ic, cl)
+    _, score = predict(entryList)
     return float(score) >= 0
 
 
