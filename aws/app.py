@@ -338,7 +338,6 @@ class CracklingStack(Stack):
                 'REGION_NAME': availabilityZone
             }
         )
-        s3Genome.grant_read_write(lambdaCustomDataUpload)   
         lambdaCustomDataUpload.add_to_role_policy(lambdaS3AccessPointIAM)
 
         ### Lambda function that organises the parallel download of genome parts
@@ -373,8 +372,7 @@ class CracklingStack(Stack):
             event_source_arn=ddbJobs.table_stream_arn,
             retry_attempts=0,
             starting_position=lambda_.StartingPosition.LATEST
-        )
-        s3Genome.grant_read_write(lambdaGenomeDownloadScheduler)   
+        )  
         lambdaGenomeDownloadScheduler.add_to_role_policy(lambdaS3AccessPointIAM)
 
        
@@ -397,7 +395,6 @@ class CracklingStack(Stack):
         sqsGenomeParts.grant_consume_messages(lambdaGenomePartsDownloader)
         sqsIsslCreation.grant_send_messages(lambdaGenomePartsDownloader)
         ddbGenomeParts.grant_read_write_data(lambdaGenomePartsDownloader)
-        s3Genome.grant_read_write(lambdaGenomePartsDownloader)
 
         lambdaGenomePartsDownloader.add_event_source_mapping(
             "mapppIsslCreation",
@@ -425,7 +422,6 @@ class CracklingStack(Stack):
             }
         )
 
-        s3Genome.grant_read_write(lambdaIsslCreation)
         sqsIsslCreation.grant_consume_messages(lambdaIsslCreation)
         sqsTargetScan.grant_send_messages(lambdaIsslCreation)
         lambdaIsslCreation.add_event_source_mapping(
@@ -492,8 +488,6 @@ class CracklingStack(Stack):
             }
         )
 
-
-        s3Genome.grant_read_write(lambdaConsensus)   
         lambdaConsensus.add_to_role_policy(lambdaS3AccessPointIAM)
 
         sqsConsensus.grant_consume_messages(lambdaConsensus)
@@ -541,7 +535,6 @@ class CracklingStack(Stack):
         ddbJobs.grant_read_write_data(lambdaIssl)
         ddbTaskTracking.grant_read_write_data(lambdaIssl)
         ddbTargets.grant_read_write_data(lambdaIssl)
-        s3Genome.grant_read_write(lambdaIssl)
         lambdaIssl.add_to_role_policy(lambdaS3AccessPointIAM)
 
         ### API
