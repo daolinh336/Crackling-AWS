@@ -135,7 +135,8 @@ class CracklingStack(Stack):
         lambdaS3AccessPointIAM = iam_.PolicyStatement.from_json({
             "Effect": "Allow",
             "Action": [
-                "s3:*"
+                "s3:*", 
+                "s3:ListBucket"
             ],
             "Resource": [
                 f"{s3GenomeAccess.attr_arn}",
