@@ -113,24 +113,46 @@ class CracklingStack(Stack):
         )
         
         ### Delegate permisions to access point
-        s3GenomeAccessPointPolicy = iam_.PolicyStatement.from_json({
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "*"
-            },
-            "Action": [
-                "s3:GetObject",
-                "s3:PutObject",
-                "s3:ListBucket"
-            ],
-            "Resource": [
-                f"{s3GenomeAccess.attr_arn}",        # Access point ARN
-                f"{s3GenomeAccess.attr_arn}/object/*" # Objects through the access point
-            ]
-        })
+        # s3GenomeAccessPointPolicy = iam_.PolicyStatement.from_json({
+        #     "Effect": "Allow",
+        #     "Principal": {
+        #         "AWS": "*"
+        #     },
+        #     "Action": [
+        #         "s3:GetObject",
+        #         "s3:PutObject",
+        #         "s3:ListBucket"
+        #     ],
+        #     "Resource": [
+        #         f"{s3GenomeAccess.attr_arn}",        # Access point ARN
+        #         f"{s3GenomeAccess.attr_arn}/object/*" # Objects through the access point
+        #     ]
+        # })
 
-        s3GenomeAccess.add_to_resource_policy(s3GenomeAccessPointPolicy)
+        # s3GenomeAccess.add_to_resource_policy(s3GenomeAccessPointPolicy)
         
+        s3_.CfnAccessPointPolicy(self, "s3GenomeAccessPolicy",
+            access_point_arn=s3GenomeAccess.attr_arn,
+            policy={
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Principal": { "AWS": "*" },
+                        "Action": [
+                            "s3:GetObject",
+                            "s3:PutObject",
+                            "s3:ListBucket"
+                        ],
+                        "Resource": [
+                            s3GenomeAccess.attr_arn,
+                            f"{s3GenomeAccess.attr_arn}/object/*"
+                        ]
+                    }
+                ]
+            }
+        )
+
         lambdaS3AccessPointIAM = iam_.PolicyStatement.from_json({
             "Effect": "Allow",
             "Action": [
@@ -332,7 +354,7 @@ class CracklingStack(Stack):
             layers=[lambdaLayerCommonFuncs],
             vpc=cracklingVpc,
             environment={
-                'BUCKET' : s3GenomeAccess.attr_arn,
+                'BUCKET' : s3GenomeAccess.attr_alias,
                 'BUCKET_NAME': s3Genome.bucket_name,
                 'REGION_NAME': availabilityZone
             }
@@ -351,7 +373,7 @@ class CracklingStack(Stack):
             memory_size= 2065,
             ephemeral_storage_size = cdk.Size.gibibytes(10),
             environment={
-                'BUCKET' : s3GenomeAccess.attr_arn,
+                'BUCKET' : s3Genome.bucket_name,
                 'ISSL_QUEUE' : sqsIsslCreation.queue_url,
                 'TARGET_SCAN_QUEUE' : sqsTargetScan.queue_url,
                 'FILE_PARTS_QUEUE' : sqsGenomeParts.queue_url,
@@ -415,7 +437,7 @@ class CracklingStack(Stack):
             ephemeral_storage_size = cdk.Size.gibibytes(10),
             environment={
                 'QUEUE' : sqsTargetScan.queue_url,
-                'BUCKET' : s3GenomeAccess.attr_arn,
+                'BUCKET' : s3GenomeAccess.attr_alias,
                 'LD_LIBRARY_PATH' : ld_library_path,
                 'PATH' : path
             }
@@ -483,7 +505,7 @@ class CracklingStack(Stack):
                 'TASK_TRACKING_TABLE' : ddbTaskTracking.table_name,
                 'JOBS_TABLE' : ddbJobs.table_name,
                 'CONSENSUS_QUEUE' : sqsConsensus.queue_url, 
-                'BUCKET' : s3GenomeAccess.attr_arn
+                'BUCKET' : s3GenomeAccess.attr_alias
             }
         )
 
@@ -514,7 +536,7 @@ class CracklingStack(Stack):
             memory_size= 10240,
             ephemeral_storage_size = cdk.Size.gibibytes(10),
             environment={
-                'BUCKET' : s3GenomeAccess.attr_arn,
+                'BUCKET' : s3GenomeAccess.attr_alias,
                 'TASK_TRACKING_TABLE' : ddbTaskTracking.table_name,
                 'TARGETS_TABLE' : ddbTargets.table_name,
                 'JOBS_TABLE' : ddbJobs.table_name,
@@ -535,6 +557,33 @@ class CracklingStack(Stack):
         ddbTaskTracking.grant_read_write_data(lambdaIssl)
         ddbTargets.grant_read_write_data(lambdaIssl)
         lambdaIssl.add_to_role_policy(lambdaS3AccessPointIAM)
+
+
+
+        s3Genome.add_to_resource_policy(
+            iam_.PolicyStatement(
+                effect=iam_.Effect.ALLOW,
+                principals=[
+                    iam_.ArnPrincipal(lambdaGenomeDownloadScheduler.role.role_arn),
+                    iam_.ArnPrincipal(lambdaCustomDataUpload.role.role_arn),
+                    iam_.ArnPrincipal(lambdaGenomePartsDownloader.role.role_arn),
+                ],
+                actions=[
+                    "s3:GetObject",
+                    "s3:PutObject",
+                    "s3:ListBucket",
+                    "s3:AbortMultipartUpload",
+                    "s3:ListMultipartUploadParts"
+                ],
+                resources=[
+                    s3Genome.bucket_arn,
+                    f"{s3Genome.bucket_arn}/*"
+                ]
+            )
+        )
+
+
+
 
         ### API
         # This handles the staging and deployment of the API. A ClouydFormation output is generated with the API URL.
