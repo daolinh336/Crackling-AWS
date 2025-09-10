@@ -30,7 +30,6 @@ from aws_cdk import (
     DefaultStackSynthesizer
 )     
 
-from aws_cdk.aws_s3 import CfnAccessPointPolicy
 
 from constructs import Construct
 
@@ -114,45 +113,45 @@ class CracklingStack(Stack):
         )
         
         ### Delegate permisions to access point
-        # s3GenomeAccessPointPolicy = iam_.PolicyStatement.from_json({
-        #     "Effect": "Allow",
-        #     "Principal": {
-        #         "AWS": "*"
-        #     },
-        #     "Action": [
-        #         "s3:GetObject",
-        #         "s3:PutObject",
-        #         "s3:ListBucket"
-        #     ],
-        #     "Resource": [
-        #         f"{s3GenomeAccess.attr_arn}",        # Access point ARN
-        #         f"{s3GenomeAccess.attr_arn}/object/*" # Objects through the access point
-        #     ]
-        # })
+        s3GenomeAccessPointPolicy = iam_.PolicyStatement.from_json({
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "*"
+            },
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:ListBucket"
+            ],
+            "Resource": [
+                f"{s3GenomeAccess.attr_arn}",        # Access point ARN
+                f"{s3GenomeAccess.attr_arn}/object/*" # Objects through the access point
+            ]
+        })
 
-        # s3GenomeAccess.add_to_resource_policy(s3GenomeAccessPointPolicy)
+        s3GenomeAccess.add_to_resource_policy(s3GenomeAccessPointPolicy)
         
-        CfnAccessPointPolicy(self, "s3GenomeAccessPolicy",
-            access_point_arn=s3GenomeAccess.ref,
-            policy={
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                        "Effect": "Allow",
-                        "Principal": { "AWS": "*" },
-                        "Action": [
-                            "s3:GetObject",
-                            "s3:PutObject",
-                            "s3:ListBucket"
-                        ],
-                        "Resource": [
-                            s3GenomeAccess.attr_arn,
-                            f"{s3GenomeAccess.attr_arn}/object/*"
-                        ]
-                    }
-                ]
-            }
-        )
+        # s3_.CfnAccessPointPolicy(self, "s3GenomeAccessPolicy",
+        #     access_point_arn=s3GenomeAccess.attr_arn,
+        #     policy={
+        #         "Version": "2012-10-17",
+        #         "Statement": [
+        #             {
+        #                 "Effect": "Allow",
+        #                 "Principal": { "AWS": "*" },
+        #                 "Action": [
+        #                     "s3:GetObject",
+        #                     "s3:PutObject",
+        #                     "s3:ListBucket"
+        #                 ],
+        #                 "Resource": [
+        #                     s3GenomeAccess.attr_arn,
+        #                     f"{s3GenomeAccess.attr_arn}/object/*"
+        #                 ]
+        #             }
+        #         ]
+        #     }
+        # )
 
         lambdaS3AccessPointIAM = iam_.PolicyStatement.from_json({
             "Effect": "Allow",
@@ -382,8 +381,6 @@ class CracklingStack(Stack):
                 'PATH' : path
             }
         )
-
-
         ddbJobs.grant_stream_read(lambdaGenomeDownloadScheduler)
         sqsIsslCreation.grant_send_messages(lambdaGenomeDownloadScheduler)
         sqsTargetScan.grant_send_messages(lambdaGenomeDownloadScheduler)
