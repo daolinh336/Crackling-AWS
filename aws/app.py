@@ -9,7 +9,6 @@ The standalone edition of the Crackling pipeline is available at https://github.
 
 """
 import aws_cdk as cdk
-import json
 
 from aws_cdk import (
     Duration,
@@ -30,6 +29,8 @@ from aws_cdk import (
     Aws,
     DefaultStackSynthesizer
 )     
+
+from aws_cdk.aws_s3 import CfnAccessPointPolicy
 
 from constructs import Construct
 
@@ -131,8 +132,8 @@ class CracklingStack(Stack):
 
         # s3GenomeAccess.add_to_resource_policy(s3GenomeAccessPointPolicy)
         
-        s3_.CfnAccessPointPolicy(self, "s3GenomeAccessPolicy",
-            access_point_arn=s3GenomeAccess.attr_arn,
+        CfnAccessPointPolicy(self, "s3GenomeAccessPolicy",
+            access_point_arn=s3GenomeAccess.ref,
             policy={
                 "Version": "2012-10-17",
                 "Statement": [
