@@ -160,7 +160,7 @@ class CracklingStack(Stack):
                 "s3:ListBucket"
             ],
             "Resource": [
-                f"{s3GenomeAccess.attr_arn}",
+                f"{s3GenomeAccess.bucket.bucket_arn}",
                 f"{s3GenomeAccess.attr_arn}/object/*"
             ]
         })
