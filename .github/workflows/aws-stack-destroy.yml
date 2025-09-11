@@ -25,7 +25,7 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Update build environment
-        run: sudo apt update
+        run: 'sudo apt update'
 
       - name: Setup Node.js 24
         uses: actions/setup-node@v3
@@ -33,10 +33,26 @@ jobs:
           node-version: '24'
 
       - name: Install AWS CDK
-        run: sudo npm install -g aws-cdk
+        run: 'sudo npm install -g aws-cdk'
 
       - name: Install Requirements 
-        run: pip3 install -r aws/requirements.txt
+        run: 'pip3 install -r aws/requirements.txt'
+  
+      - name: Create Lambda layer with NCBI dependency
+        run: 'mkdir -p layers/ncbi/python && python3 -m pip install --target layers/ncbi/python -r layers/requirements_ncbi.txt'
+
+      - name: Create Lambda layer with requests dependency
+        run: 'mkdir -p layers/requestsPy310Pkgs/python && python3 -m pip install --target layers/requestsPy310Pkgs/python -r layers/requirements_requests.txt'
+
+      - name: Create Lambda layer with lib dependencies (1/2)
+        run: "ldd layers/isslScoreOfftargets/isslScoreOfftargets | grep \"=> /\" | awk '{print $3}' | xargs -I '{}' cp -v '{}' layers/sharedObjects"
+
+      - name: Create Lambda layer with lib dependencies (2/2)
+        run: "ldd layers/rnaFold/rnaFold/RNAfold | grep \"=> /\" | awk '{print $3}' | xargs -I '{}' cp -v '{}' layers/sharedObjects"
+
+      - name: CDK Synth
+        run: cdk synth
+        working-directory: aws
 
       - name: CDK Destroy
         run: |
