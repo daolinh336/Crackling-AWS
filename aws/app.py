@@ -37,6 +37,10 @@ class CracklingStack(Stack):
     def __init__(self, scope, id, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
+        commit_hash = self.node.try_get_context("gitCommit")
+        if commit_hash:
+            cdk.Tags.of(self).add("GitCommit", commit_hash[:8])
+
         ### Virtual Private Cloud
         # VPCs are used for constraining infrastructure to a private network.
         cracklingVpc = ec2_.Vpc(self, "CracklingVpc",
