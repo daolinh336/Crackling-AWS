@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirm_destroy:
-        description: "Type 'yes' to confirm destruction of the Crackling-AWS stack. All data will be permanently deleted."
+        description: "Type 'yes' to confirm destruction of the Crackling-AWS stack. All data will be permanently deleted. Be sure to check that the variable `AWS_STACK_NAME` is correctly set."
         required: true
         default: "no"
 
