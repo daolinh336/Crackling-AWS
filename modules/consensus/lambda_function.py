@@ -1,4 +1,4 @@
-import ast, glob, io, json, os, re, shutil, subprocess, sys, tempfile, zipfile
+import ast, json, os, re, tempfile
 from subprocess import call
 from time import time_ns
 
@@ -6,117 +6,6 @@ import boto3
 from common_funcs import *
 
 s3_bucket = os.environ['BUCKET']
-
-######################## Setting up python packages required to run model ##################################
-
-# Temp solution to overcome 250MB limit for lambda layers. Download sk-learn to lambda and upload to S3 
-
-def install_and_upload_sklearn_to_s3(s3_bucket, s3_key, package_name='scikit-learn'):
-
-    temp_dir = "/tmp/PY"
-    print(f"Created temporary directory: {temp_dir}")
-
-    # Path for the virtual environment
-    venv_dir = os.path.join(temp_dir, 'venv')
-    try:
-        # Create a virtual environment
-        subprocess.run([sys.executable, '-m', 'venv', venv_dir], check=True)
-        print(f"Virtual environment created at {venv_dir}")
-        # Activate the virtual environment and install the package
-        pip_executable = os.path.join(venv_dir, 'bin', 'pip')
-        subprocess.run([pip_executable, 'install', package_name], check=True)
-        print(f"{package_name} installed successfully in virtual environment")
-
-        # Directory where the packages are installed
-        site_packages_dir = os.path.join(venv_dir, 'lib', 'python3.10', 'site-packages')
-        # create a zip file of the installed packages
-        zip_file_path = os.path.join(temp_dir, f'{package_name}.zip')
-        with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as zf:
-            for root, _, files in os.walk(site_packages_dir):
-                for file in files:
-                    file_path = os.path.join(root, file)
-                    arcname = os.path.relpath(file_path, site_packages_dir)
-                    zf.write(file_path, arcname)
-        print(f"Zipped {package_name} packages to {zip_file_path}")
-
-        # Upload the zip file to S3
-        s3_client = boto3.client('s3')
-        with open(zip_file_path, 'rb') as f:
-            s3_client.upload_fileobj(f, s3_bucket, s3_key)
-        print(f"Uploaded {zip_file_path} to s3://{s3_bucket}/{s3_key}")
-
-        return {
-            'statusCode': 200,
-            'body': f'{package_name} was successfully uploaded to {s3_key}.'
-        }
-
-    except subprocess.CalledProcessError as e: # error actually installing the packages
-        print(f"Subprocess error: {str(e)}")
-        return {
-            'statusCode': 500,
-            'body': f'Error installing the packages'
-        }
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        return {
-            'statusCode': 500,
-            'body': f'Error occurred: {str(e)}'
-        }
-    finally:
-        # Clean up the temporary directory
-        try:
-            shutil.rmtree(temp_dir)
-        except Exception as cleanup_error:
-            print(f"Failed to remove temporary directory")
-    
-def handle_sklearn_package():
-
-    s3_client = boto3.client('s3')
-    bucket_name = s3_bucket  
-    zip_file_key = "Test_Packages/python123.zip"
-    temp_dir_py = "/tmp/py_files"
-
-    print(f"Created temporary folder {temp_dir_py}")
-    
-    try:
-        response = s3_client.get_object(Bucket=bucket_name, Key=zip_file_key)
-        zip_content = response['Body'].read()
-        zip_size = len(zip_content)
-        print(f"Downlaoded file size is {zip_size} bytes")
-        
-        if zip_size == 0:
-            print("Empty download")
-            return {
-                'statusCode': 500,
-                'body': 'Error: Downloaded ZIP file is empty'
-            }
-        
-        print("Download is successful")
-        print(f"unzipping file to temporary directory: {temp_dir_py}")
-        with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
-            z.extractall(temp_dir_py)
-
-        python_dir = temp_dir_py
-        sys.path.insert(0, python_dir) # add path to python packages to system path
-        
-        print("Current system path:", sys.path)
-        try:
-            import sklearn # check if import is successful
-            version = sklearn.__version__
-        except ImportError as e:
-            print(f"ImportError: {str(e)}")
-            return {
-                'statusCode': 500,
-                'body': f'scikit-learn is not available. Error: {str(e)}'
-            }
-    
-    except Exception as e:
-        print(f'Error occurred: {str(e)}')
-        return {
-            'statusCode': 500,
-            'body': f'Error occurred: {str(e)}'
-        }
-
 
 def file_exists_in_s3(bucket_name, s3_key):
     s3 = boto3.client('s3')
@@ -129,25 +18,13 @@ def file_exists_in_s3(bucket_name, s3_key):
         else:
             raise
 
-try:
-    from sklearn.svm import SVC
-    import joblib
-except ImportError:
-    s3_key = "Test_Packages/python123.zip"
-    if file_exists_in_s3(s3_bucket, s3_key):
-        handle_sklearn_package()
-    else:
-        install_and_upload_sklearn_to_s3(s3_bucket, s3_key, package_name='scikit-learn')
-        handle_sklearn_package()
+with open('/opt/sgrnascorer2_svm_data.json', 'r') as f:
+    data = json.load(f)
+support_vectors = data['support_vectors']
+dual_coef = data['dual_coef']      
+intercept = data['intercept']      
+classes = data['classes']  
 
-
-from sklearn.svm import SVC
-import joblib
-
-
-############################################################################################################
-
-SGRNASCORER2_MODEL = joblib.load('/opt/model-py38-svc0232.txt')
 
 call(f"cp -r /opt/rnaFold /tmp/rnaFold".split(' '))
 call(f"chmod -R 755 /tmp/rnaFold".split(' '))
@@ -164,7 +41,6 @@ sqs_client = boto3.client('sqs')
 
 dynamodb = boto3.resource('dynamodb')
 TARGETS_TABLE = dynamodb.Table(targets_table_name)
-
 
 def caller(*args, **kwargs):
     print(f"Calling: {args}")
@@ -296,31 +172,41 @@ def _CalcMm10db(seq, rnaFoldResult):
         (AT >= 0.20 and AT <= 0.65),
         rnaFoldResult
     ])
-    
+
+
+# Dot product between two vectors
+def dot(u, v):
+    return sum(ue * ve for ue, ve in zip(u, v))
+
+# Decision function
+def decision_function(x, support_vectors, dual_coef, intercept):
+    total = 0.0
+    for coef, sv in zip(dual_coef, support_vectors):
+        total += coef * dot(sv, x)
+    return total + intercept
+
+# Predict
+def predict(x):
+    score = decision_function(x, support_vectors, dual_coef, intercept)
+    return (classes[1] if score > 0 else classes[0], score)
+
+# sgRNAScorer 2.0 calculation
 def _CalcSgrnascorer(seq):
     encoding = {
-        'A' : '0001',        'C' : '0010',        'T' : '0100',        
-        'G' : '1000',        'K' : '1100',        'M' : '0011',
-        'R' : '1001',        'Y' : '0110',        'S' : '1010',        
-        'W' : '0101',        'B' : '1110',        'V' : '1011',        
-        'H' : '0111',        'D' : '1101',        'N' : '1111'
+        'A': '0001', 'C': '0010', 'T': '0100', 'G': '1000',
+        'K': '1100', 'M': '0011', 'R': '1001', 'Y': '0110',
+        'S': '1010', 'W': '0101', 'B': '1110', 'V': '1011',
+        'H': '0111', 'D': '1101', 'N': '1111'
     }
 
+    # Flattened binary encoding of the first 20 bases
     entryList = []
+    for base in seq[:20]:
+        entryList.extend(int(bit) for bit in encoding[base])
 
-    x = 0
-    while x < 20:
-        y = 0
-        while y < 4:
-            entryList.append(int(encoding[seq[x]][y]))
-            y += 1
-        x += 1
+    _, score = predict(entryList)
+    return float(score) >= 0
 
-    # predict based on the entry
-    prediction = SGRNASCORER2_MODEL.predict([entryList])
-    score = SGRNASCORER2_MODEL.decision_function([entryList])[0]
-
-    return (float(score) >= 0)
 
 def lambda_handler(event, context):
     records = {}
