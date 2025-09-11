@@ -2,9 +2,15 @@ name: Destroy Crackling-AWS
 
 on:
   workflow_dispatch:
+    inputs:
+      confirm_destroy:
+        description: "Type 'yes' to confirm destruction of the Crackling-AWS stack. All data will be permanently deleted."
+        required: true
+        default: "no"
 
 jobs:
   Destroy_CracklingAws:
+    if: ${{ github.event.inputs.confirm_destroy == 'yes' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
