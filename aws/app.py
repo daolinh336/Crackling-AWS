@@ -367,7 +367,7 @@ class CracklingStack(Stack):
             code=lambda_.Code.from_asset("../modules/genomePartsDownloader"),
             layers=[lambdaLayerCommonFuncs, lambdaLayerRequests],
             timeout= duration,
-            memory_size= 10240,
+            memory_size= 3007,
             ephemeral_storage_size = cdk.Size.gibibytes(10), 
             environment={
                 'FILES_TABLE' : ddbGenomeParts.table_name,
@@ -396,7 +396,7 @@ class CracklingStack(Stack):
             vpc=cracklingVpc,
             vpc_subnets=ec2_.SubnetSelection(subnet_type=ec2_.SubnetType.PRIVATE_ISOLATED),
             timeout= duration,
-            memory_size= 10240,
+            memory_size= 3007,
             ephemeral_storage_size = cdk.Size.gibibytes(10),
             environment={
                 'QUEUE' : sqsTargetScan.queue_url,
@@ -427,7 +427,7 @@ class CracklingStack(Stack):
             layers=[lambdaLayerCommonFuncs],
             vpc=cracklingVpc,
             timeout= duration,
-            memory_size= 10240,
+            memory_size= 3007,
             ephemeral_storage_size = cdk.Size.gibibytes(10),
             environment={
                 'TARGETS_TABLE' : ddbTargets.table_name,
@@ -461,7 +461,7 @@ class CracklingStack(Stack):
             layers=[lambdaLayerLib, lambdaLayerSgrnascorerModel, lambdaLayerRnafold, lambdaLayerCommonFuncs],
             vpc=cracklingVpc,
             timeout= duration,
-            memory_size= 10240,
+            memory_size= 3007,
             ephemeral_storage_size = cdk.Size.gibibytes(10),
             environment={
                 'TARGETS_TABLE' : ddbTargets.table_name,
@@ -496,7 +496,7 @@ class CracklingStack(Stack):
             layers=[lambdaLayerLib, lambdaLayerIsslScorer, lambdaLayerCommonFuncs],
             vpc=cracklingVpc,
             timeout= duration,
-            memory_size= 10240,
+            memory_size= 3007,
             ephemeral_storage_size = cdk.Size.gibibytes(10),
             environment={
                 'BUCKET' : s3GenomeAccess.attr_alias,
